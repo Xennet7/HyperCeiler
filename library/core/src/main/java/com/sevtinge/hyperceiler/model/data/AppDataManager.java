@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.lang.reflect.Method;
 
 public class AppDataManager {
 
@@ -49,17 +50,23 @@ public class AppDataManager {
                 intent.addCategory(Intent.CATEGORY_LAUNCHER);
 
                 List<ResolveInfo> resolveInfosHaveNoLauncher =
-                    pm.queryIntentActivities(intent, PackageManager.MATCH_ALL);
+                    new ArrayList<>(pm.queryIntentActivities(intent, PackageManager.MATCH_ALL));
+                // MIUI Dual Apps is Android user 999. Query it explicitly because the
+                // normal PackageManager query only returns the current user's apps.
+                resolveInfosHaveNoLauncher.addAll(queryActivitiesAsUser(pm, intent, PackageManager.MATCH_ALL, 999));
 
                 mPackageMap.clear();
                 List<ResolveInfo> resolveInfoList = new ArrayList<>();
 
                 for (ResolveInfo resolveInfo : resolveInfosHaveNoLauncher) {
-                    if (resolveInfo.activityInfo == null) continue;
+                    if (resolveInfo.activityInfo == null || resolveInfo.activityInfo.applicationInfo == null) continue;
 
-                    String packageName = resolveInfo.activityInfo.applicationInfo.packageName;
-                    if (!mPackageMap.containsKey(packageName)) {
-                        mPackageMap.put(packageName, 1);
+                    ApplicationInfo appInfo = resolveInfo.activityInfo.applicationInfo;
+                    String packageName = appInfo.packageName;
+                    int userId = android.os.UserHandle.getUserId(appInfo.uid);
+                    String appKey = packageName + "@" + userId;
+                    if (!mPackageMap.containsKey(appKey)) {
+                        mPackageMap.put(appKey, 1);
                         resolveInfoList.add(resolveInfo);
                     }
                 }
@@ -68,14 +75,37 @@ public class AppDataManager {
                 resolveInfoList.sort((r1, r2) -> {
                     CharSequence label1 = r1.loadLabel(pm);
                     CharSequence label2 = r2.loadLabel(pm);
-                    return collator.compare(
-                        label1.toString(),
-                        label2.toString()
-                    );
+                    String name1 = label1.toString() + (android.os.UserHandle.getUserId(r1.activityInfo.applicationInfo.uid) == 999 ? " (Dual Apps)" : "");
+                    String name2 = label2.toString() + (android.os.UserHandle.getUserId(r2.activityInfo.applicationInfo.uid) == 999 ? " (Dual Apps)" : "");
+                    return collator.compare(name1, name2);
                 });
                 return new ArrayList<>(resolveInfoList);
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<ResolveInfo> queryActivitiesAsUser(PackageManager pm, Intent intent, int flags, int userId) {
+        try {
+            Method method = pm.getClass().getMethod("queryIntentActivitiesAsUser", Intent.class, int.class, int.class);
+            Object result = method.invoke(pm, intent, flags, userId);
+            return result instanceof List<?> list ? (List<ResolveInfo>) list : new ArrayList<>();
+        } catch (Throwable e) {
+            AndroidLog.w(TAG, "Unable to query launcher activities for user " + userId + "; cross-user access may not be granted", e);
+            return new ArrayList<>();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<ApplicationInfo> getInstalledApplicationsAsUser(PackageManager pm, int flags, int userId) {
+        try {
+            Method method = pm.getClass().getMethod("getInstalledApplicationsAsUser", int.class, int.class);
+            Object result = method.invoke(pm, flags, userId);
+            return result instanceof List<?> list ? (List<ApplicationInfo>) list : new ArrayList<>();
+        } catch (Throwable e) {
+            AndroidLog.w(TAG, "Unable to enumerate installed apps for user " + userId + "; cross-user access may not be granted", e);
+            return new ArrayList<>();
+        }
     }
 
     private List<AppData> getOpenWithApps() {
@@ -122,15 +152,18 @@ public class AppDataManager {
                 Intent intent = new Intent(Intent.ACTION_MAIN);
                 intent.addCategory(Intent.CATEGORY_LAUNCHER);
 
-                List<ApplicationInfo> applicationInfos = pm.getInstalledApplications(0);
+                List<ApplicationInfo> applicationInfos = new ArrayList<>(pm.getInstalledApplications(0));
+                applicationInfos.addAll(getInstalledApplicationsAsUser(pm, 0, 999));
 
                 mPackageMap.clear();
                 List<ApplicationInfo> resolveInfoList = new ArrayList<>();
 
                 for (ApplicationInfo appInfo : applicationInfos) {
                     String packageName = appInfo.packageName;
-                    if (!mPackageMap.containsKey(packageName)) {
-                        mPackageMap.put(packageName, 1);
+                    int userId = android.os.UserHandle.getUserId(appInfo.uid);
+                    String appKey = packageName + "@" + userId;
+                    if (!mPackageMap.containsKey(appKey)) {
+                        mPackageMap.put(appKey, 1);
                         resolveInfoList.add(appInfo);
                     }
                 }
@@ -139,10 +172,9 @@ public class AppDataManager {
                 resolveInfoList.sort((r1, r2) -> {
                     CharSequence label1 = r1.loadLabel(pm);
                     CharSequence label2 = r2.loadLabel(pm);
-                    return collator.compare(
-                        label1.toString(),
-                        label2.toString()
-                    );
+                    String name1 = label1.toString() + (android.os.UserHandle.getUserId(r1.uid) == 999 ? " (Dual Apps)" : "");
+                    String name2 = label2.toString() + (android.os.UserHandle.getUserId(r2.uid) == 999 ? " (Dual Apps)" : "");
+                    return collator.compare(name1, name2);
                 });
                 return new ArrayList<>(resolveInfoList);
             }

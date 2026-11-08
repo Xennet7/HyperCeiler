@@ -75,7 +75,7 @@ public final class HomeQuickSwitchOS4 {
     }
     private static boolean performGesture(Context context,int event) {
         try (Cursor c=context.getContentResolver().query(PREFS,null,null,null,null)) {
-            if(c==null||!c.moveToFirst()||c.getColumnCount()!=3+4*com.sevtinge.hyperceiler.libhook.provider.HomeGesturePrefsSnapshot.ACTIONS.length||c.getInt(0)!=1)return false;
+            if(c==null||!c.moveToFirst()||c.getColumnCount()!=3+5*com.sevtinge.hyperceiler.libhook.provider.HomeGesturePrefsSnapshot.ACTIONS.length||c.getInt(0)!=1)return false;
             int master=c.getColumnIndex("home_gesture_enable");
             if(master<0||c.isNull(master)||c.getInt(master)!=1)return false;
             java.util.Map<String,Object> values=new java.util.HashMap<>();

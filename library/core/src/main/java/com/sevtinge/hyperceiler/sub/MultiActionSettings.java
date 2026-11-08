@@ -92,6 +92,7 @@ public class MultiActionSettings extends SettingsPreferenceFragment
     public void updateAppSelectorTitle() {
         if (hasKey(mKey + "_app")) {
             String title = getAppName(getContext(), PrefsBridge.getString(mKey + "_app", ""));
+            if (PrefsBridge.getInt(mKey + "_app_user", 0) == 999 && title != null) title += " (Dual Apps)";
             mExpertPreference.setSummary(title);
         }
     }
@@ -133,7 +134,11 @@ public class MultiActionSettings extends SettingsPreferenceFragment
                 if (mAppActivityName == null) {
                     mAppActivityName = "";
                 }
+                int appUserId = data.getIntExtra("appUserId", 0);
+                // GlobalActionBridge reads the selected profile from this companion key.
+                // Keep the existing package|activity format unchanged for compatibility.
                 PrefsBridge.putByApp(mKey + "_app", mAppPackageName + "|" + mAppActivityName);
+                PrefsBridge.putByApp(mKey + "_app_user", appUserId);
                 updateAppSelectorTitle();
             }
         });
@@ -209,6 +214,7 @@ public class MultiActionSettings extends SettingsPreferenceFragment
         mExpertPreference.setTitle(getResources().getString(R.string.array_global_actions_launch));
         if (hasKey(mKey + "_app")) {
             String title = getAppName(getContext(), PrefsBridge.getString(mKey + "_app", ""));
+            if (PrefsBridge.getInt(mKey + "_app_user", 0) == 999 && title != null) title += " (Dual Apps)";
             mExpertPreference.setSummary(title);
         } else {
             mExpertPreference.setSummary(getResources().getString(R.string.array_global_actions_launch_choose));

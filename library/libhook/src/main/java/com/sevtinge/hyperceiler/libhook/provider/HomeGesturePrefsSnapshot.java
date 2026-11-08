@@ -23,6 +23,7 @@ public final class HomeGesturePrefsSnapshot {
         columns.add("schema"); columns.add("home_gesture_enable"); columns.add("home_navigation_quick_back");
         for (String key : ACTIONS) {
             columns.add(key + "_action"); columns.add(key + "_app");
+            columns.add(key + "_app_user");
             columns.add(key + "_activity"); columns.add(key + "_shortcut_intent");
         }
         MatrixCursor cursor = new MatrixCursor(columns.toArray(new String[0]));

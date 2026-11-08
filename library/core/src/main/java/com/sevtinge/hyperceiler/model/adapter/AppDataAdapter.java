@@ -200,17 +200,18 @@ public class AppDataAdapter extends CardGroupAdapter<AppViewHolder> {
 
         @Override
         public boolean areItemsTheSame(int oldPos, int newPos) {
-            String oldPkg = oldList.get(oldPos).packageName;
-            String newPkg = newList.get(newPos).packageName;
-            if (oldPkg == null || newPkg == null) return oldPkg == newPkg;
-            return oldPkg.equals(newPkg);
+            AppData oldApp = oldList.get(oldPos);
+            AppData newApp = newList.get(newPos);
+            return oldApp.user == newApp.user
+                && java.util.Objects.equals(oldApp.packageName, newApp.packageName);
         }
 
         @Override
         public boolean areContentsTheSame(int oldPos, int newPos) {
             AppData o = oldList.get(oldPos);
             AppData n = newList.get(newPos);
-            return o.isSelected == n.isSelected
+            return o.user == n.user
+                && o.isSelected == n.isSelected
                 && String.valueOf(o.label).equals(String.valueOf(n.label));
         }
     }
@@ -258,7 +259,7 @@ public class AppDataAdapter extends CardGroupAdapter<AppViewHolder> {
         private void updateAppIcon(AppData appInfo) {
             if (appInfo.icon != null) {
                 mAppIcon.setImageDrawable(appInfo.icon);
-                mAppIcon.setTag(appInfo.packageName);
+                mAppIcon.setTag(appInfo.packageName + "@" + appInfo.user);
                 return;
             }
 
@@ -274,11 +275,11 @@ public class AppDataAdapter extends CardGroupAdapter<AppViewHolder> {
             mAppIcon.setImageResource(android.R.drawable.sym_def_app_icon);
 
             // 记录当前 packageName 防止复用错位
-            mAppIcon.setTag(appInfo.packageName);
+            mAppIcon.setTag(appInfo.packageName + "@" + appInfo.user);
 
             AppIconCache.loadIconAsync(mItemView.getContext(), appInfo.packageName, iconSize, icon -> {
                 // 检查 ViewHolder 是否已被复用
-                if (appInfo.packageName.equals(mAppIcon.getTag())) {
+                if ((appInfo.packageName + "@" + appInfo.user).equals(mAppIcon.getTag())) {
                     if (icon != null) {
                         appInfo.icon = icon;
                         mAppIcon.setImageDrawable(icon);

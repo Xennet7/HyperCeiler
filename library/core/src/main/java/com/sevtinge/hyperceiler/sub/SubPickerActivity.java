@@ -218,7 +218,8 @@ public class SubPickerActivity extends AppCompatActivity
             appData.label,
             appData.packageName,
             appData.versionName + "(" + appData.versionCode + ")",
-            appData.activityName
+            appData.activityName,
+            appData.user
         );
         finish();
     }
@@ -359,13 +360,15 @@ public class SubPickerActivity extends AppCompatActivity
                 String[] selectedParts = selectedApp.split("\\|", 2);
                 String selectedPackage = selectedParts.length > 0 ? selectedParts[0] : "";
                 String selectedActivity = selectedParts.length > 1 ? selectedParts[1] : "";
+                int selectedUser = PrefsBridge.getInt(mKey + "_app_user", 0);
 
                 AppData selectedAppData = null;
                 iterator = data.iterator();
                 while (iterator.hasNext()) {
                     AppData app = iterator.next();
                     if (selectedPackage.equals(app.packageName) &&
-                        selectedActivity.equals(app.activityName)) {
+                        selectedActivity.equals(app.activityName) &&
+                        selectedUser == app.user) {
                         app.isSelected = true;
                         selectedAppData = app;
                         iterator.remove();
@@ -509,7 +512,7 @@ public class SubPickerActivity extends AppCompatActivity
     }
 
     @Override
-    public void sendMsgToActivity(Drawable appIcon, String appName, String appPackageName, String appVersion, String appActivityName) {
+    public void sendMsgToActivity(Drawable appIcon, String appName, String appPackageName, String appVersion, String appActivityName, int appUserId) {
         Drawable safeIcon = appIcon;
         if (safeIcon == null && appPackageName != null && !appPackageName.isEmpty()) {
             try {
@@ -531,6 +534,7 @@ public class SubPickerActivity extends AppCompatActivity
         intent.putExtra("appPackageName", appPackageName);
         intent.putExtra("appVersion", appVersion);
         intent.putExtra("appActivityName", appActivityName);
+        intent.putExtra("appUserId", appUserId);
         setResult(1, intent);
     }
 

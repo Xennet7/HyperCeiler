@@ -21,6 +21,7 @@ package com.sevtinge.hyperceiler.model.data;
 import android.graphics.drawable.Drawable;
 
 public class AppData {
+    /** Android user/profile ID that owns this installed app instance. */
     public int user = 0;
     public Drawable icon;
     public String label;

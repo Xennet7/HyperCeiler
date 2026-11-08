@@ -22,7 +22,7 @@ import android.graphics.drawable.Drawable;
 
 public interface IAppSelectCallback {
 
-    void sendMsgToActivity(Drawable appIcon, String appName, String appPackageName, String appVersion, String appActivityName);
+    void sendMsgToActivity(Drawable appIcon, String appName, String appPackageName, String appVersion, String appActivityName, int appUserId);
 
     String getMsgFromActivity(String s);
 }
