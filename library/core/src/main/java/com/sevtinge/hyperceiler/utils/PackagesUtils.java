@@ -30,7 +30,6 @@ import android.content.pm.ProviderInfo;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 import android.os.Parcelable;
-import android.os.UserHandle;
 
 import com.sevtinge.hyperceiler.libhook.provider.SharedPrefsProvider;
 import com.sevtinge.hyperceiler.libhook.utils.api.ContextUtils;
@@ -355,7 +354,7 @@ public class PackagesUtils {
         }
         ApplicationInfo ownerInfo = getApplicationInfo(parcelable);
         if (ownerInfo != null) {
-            appData.user = UserHandle.getUserId(ownerInfo.uid);
+            appData.user = (ownerInfo.uid / 100000);
             if (appData.user == 999 && appData.label != null && !appData.label.endsWith(" (Dual Apps)")) {
                 appData.label += " (Dual Apps)";
             }

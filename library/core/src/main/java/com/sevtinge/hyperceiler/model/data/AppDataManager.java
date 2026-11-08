@@ -63,7 +63,7 @@ public class AppDataManager {
 
                     ApplicationInfo appInfo = resolveInfo.activityInfo.applicationInfo;
                     String packageName = appInfo.packageName;
-                    int userId = android.os.UserHandle.getUserId(appInfo.uid);
+                    int userId = (appInfo.uid / 100000);
                     String appKey = packageName + "@" + userId;
                     if (!mPackageMap.containsKey(appKey)) {
                         mPackageMap.put(appKey, 1);
@@ -75,8 +75,8 @@ public class AppDataManager {
                 resolveInfoList.sort((r1, r2) -> {
                     CharSequence label1 = r1.loadLabel(pm);
                     CharSequence label2 = r2.loadLabel(pm);
-                    String name1 = label1.toString() + (android.os.UserHandle.getUserId(r1.activityInfo.applicationInfo.uid) == 999 ? " (Dual Apps)" : "");
-                    String name2 = label2.toString() + (android.os.UserHandle.getUserId(r2.activityInfo.applicationInfo.uid) == 999 ? " (Dual Apps)" : "");
+                    String name1 = label1.toString() + ((r1.activityInfo.applicationInfo.uid / 100000) == 999 ? " (Dual Apps)" : "");
+                    String name2 = label2.toString() + ((r2.activityInfo.applicationInfo.uid / 100000) == 999 ? " (Dual Apps)" : "");
                     return collator.compare(name1, name2);
                 });
                 return new ArrayList<>(resolveInfoList);
@@ -160,7 +160,7 @@ public class AppDataManager {
 
                 for (ApplicationInfo appInfo : applicationInfos) {
                     String packageName = appInfo.packageName;
-                    int userId = android.os.UserHandle.getUserId(appInfo.uid);
+                    int userId = (appInfo.uid / 100000);
                     String appKey = packageName + "@" + userId;
                     if (!mPackageMap.containsKey(appKey)) {
                         mPackageMap.put(appKey, 1);
@@ -172,8 +172,8 @@ public class AppDataManager {
                 resolveInfoList.sort((r1, r2) -> {
                     CharSequence label1 = r1.loadLabel(pm);
                     CharSequence label2 = r2.loadLabel(pm);
-                    String name1 = label1.toString() + (android.os.UserHandle.getUserId(r1.uid) == 999 ? " (Dual Apps)" : "");
-                    String name2 = label2.toString() + (android.os.UserHandle.getUserId(r2.uid) == 999 ? " (Dual Apps)" : "");
+                    String name1 = label1.toString() + ((r1.uid / 100000) == 999 ? " (Dual Apps)" : "");
+                    String name2 = label2.toString() + ((r2.uid / 100000) == 999 ? " (Dual Apps)" : "");
                     return collator.compare(name1, name2);
                 });
                 return new ArrayList<>(resolveInfoList);
